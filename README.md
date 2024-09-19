@@ -1,146 +1,146 @@
-# Whisper
-
-[[Blog]](https://openai.com/blog/whisper)
-[[Paper]](https://arxiv.org/abs/2212.04356)
-[[Model card]](https://github.com/openai/whisper/blob/main/model-card.md)
-[[Colab example]](https://colab.research.google.com/github/openai/whisper/blob/master/notebooks/LibriSpeech.ipynb)
-
-Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.
-
-
-## Approach
-
-![Approach](https://raw.githubusercontent.com/openai/whisper/main/approach.png)
-
-A Transformer sequence-to-sequence model is trained on various speech processing tasks, including multilingual speech recognition, speech translation, spoken language identification, and voice activity detection. These tasks are jointly represented as a sequence of tokens to be predicted by the decoder, allowing a single model to replace many stages of a traditional speech-processing pipeline. The multitask training format uses a set of special tokens that serve as task specifiers or classification targets.
-
-
-## Setup
-
-We used Python 3.9.9 and [PyTorch](https://pytorch.org/) 1.10.1 to train and test our models, but the codebase is expected to be compatible with Python 3.8-3.11 and recent PyTorch versions. The codebase also depends on a few Python packages, most notably [OpenAI's tiktoken](https://github.com/openai/tiktoken) for their fast tokenizer implementation. You can download and install (or update to) the latest release of Whisper with the following command:
-
+#耳语
+ 
+[[博客]](https://openai.com/blog/whisper)
+[[论文]](https://arxiv.org/abs/2212.04356)
+[[型号卡]](https://github.com/openai/whisper/blob/main/model-card.md)
+[[Colab示例]](https://colab.research.google.com/github/openai/whisper/blob/master/notebooks/LibriSpeech.ipynb)
+ 
+Whisper是一种通用的语音识别模型。它是在一个包含各种音频的大型数据集上训练的，也是一个多任务模型，可以执行多语言语音识别、语音翻译和语言识别。
+ 
+ 
+##方法
+ 
+![方法](https://raw.githubusercontent.com/openai/whisper/main/approach.png)
+ 
+Transformer序列到序列模型在各种语音处理任务上进行训练，包括多语言语音识别、语音翻译、口语识别和语音活动检测。这些任务被联合表示为解码器要预测的一系列标记，允许单个模型取代传统语音处理管道的许多阶段。多任务训练格式使用一组特殊的标记，作为任务说明符或分类目标。
+ 
+ 
+##安装程序
+ 
+我们使用Python 3.9.9和[PyTorch](https://pytorch.org/) 1.10.1来训练和测试我们的模型，但代码库预计将与Python 3.8-3.11和最近的PyTorch版本兼容。代码库还依赖于一些Python包，最值得注意的是[OpenAI的tiktoken](https://github.com/openai/tiktoken)，用于实现其快速的标记器。您可以使用以下命令下载并安装（或更新到）最新版本的Whisper：
+ 
     pip install -U openai-whisper
-
-Alternatively, the following command will pull and install the latest commit from this repository, along with its Python dependencies:
-
-    pip install git+https://github.com/openai/whisper.git 
-
-To update the package to the latest version of this repository, please run:
-
-    pip install --upgrade --no-deps --force-reinstall git+https://github.com/openai/whisper.git
-
-It also requires the command-line tool [`ffmpeg`](https://ffmpeg.org/) to be installed on your system, which is available from most package managers:
-
+ 
+或者，以下命令将从该存储库中提取并安装最新的提交及其Python依赖项：
+ 
+    使用pip安装git+https://github.com/openai/whisper.git
+ 
+要将软件包更新为此存储库的最新版本，请运行：
+ 
+    pip安装 --升级 --no-deps --force-reinstall git+https://github.com/openai/whisper.git
+ 
+它还需要在您的系统上安装命令行工具[`ffmpeg`](https://ffmpeg.org/)，可以从大多数软件包管理器获得：
+ 
 ```bash
-# on Ubuntu or Debian
-sudo apt update && sudo apt install ffmpeg
-
-# on Arch Linux
-sudo pacman -S ffmpeg
-
-# on MacOS using Homebrew (https://brew.sh/)
-brew install ffmpeg
-
-# on Windows using Chocolatey (https://chocolatey.org/)
-choco install ffmpeg
-
-# on Windows using Scoop (https://scoop.sh/)
-scoop install ffmpeg
+# 在 Ubuntu 或 Debian 上
+使用sudo更新软件库并安装ffmpeg
+ 
+# 在 Arch Linux 上
+使用 sudo 命令安装 ffmpeg
+ 
+# 在MacOS上使用Homebrew（https://brew.sh/）
+brew安装ffmpeg
+ 
+# 在 Windows 上使用 Chocolatey（https://chocolatey.org/）
+choco 安装 ffmpeg
+ 
+# 在 Windows 上使用 Scoop (https://scoop.sh/)
+独家安装ffmpeg
 ```
-
-You may need [`rust`](http://rust-lang.org) installed as well, in case [tiktoken](https://github.com/openai/tiktoken) does not provide a pre-built wheel for your platform. If you see installation errors during the `pip install` command above, please follow the [Getting started page](https://www.rust-lang.org/learn/get-started) to install Rust development environment. Additionally, you may need to configure the `PATH` environment variable, e.g. `export PATH="$HOME/.cargo/bin:$PATH"`. If the installation fails with `No module named 'setuptools_rust'`, you need to install `setuptools_rust`, e.g. by running:
-
+ 
+你可能还需要安装[`rust`](http://rust-lang.org)，以防[tiktoken](https://github.com/openai/tiktoken)没有提供适用于你平台的预构建的 wheel。如果在上面的“pip install”命令中看到安装错误，请按照[入门页面](https://www.rust-lang.org/learn/get-started)安装Rust开发环境。此外，你可能需要配置`PATH`环境变量，例如`export PATH="$HOME/.cargo/bin:$PATH"`。如果安装失败，提示“没有名为'setuptools_rust'的模块”，则需要安装'setuptools_rust'，例如通过运行：
+ 
 ```bash
-pip install setuptools-rust
+pip安装setuptools-rust
 ```
-
-
-## Available models and languages
-
-There are five model sizes, four with English-only versions, offering speed and accuracy tradeoffs. Below are the names of the available models and their approximate memory requirements and inference speed relative to the large model; actual speed may vary depending on many factors including the available hardware.
-
-|  Size  | Parameters | English-only model | Multilingual model | Required VRAM | Relative speed |
+ 
+ 
+## 可用模型和语言
+ 
+有五种型号，四种只有英文版本，提供速度和准确性的权衡。以下是可用模型的名称及其相对于大型模型的大致内存要求和推理速度；实际速度可能因许多因素而异，包括可用硬件。
+ 
+| 尺寸 | 参数 | 纯英文型号 | 多语言型号 | 所需显存 | 相对速度 |
 |:------:|:----------:|:------------------:|:------------------:|:-------------:|:--------------:|
-|  tiny  |    39 M    |     `tiny.en`      |       `tiny`       |     ~1 GB     |      ~32x      |
-|  base  |    74 M    |     `base.en`      |       `base`       |     ~1 GB     |      ~16x      |
-| small  |   244 M    |     `small.en`     |      `small`       |     ~2 GB     |      ~6x       |
-| medium |   769 M    |    `medium.en`     |      `medium`      |     ~5 GB     |      ~2x       |
-| large  |   1550 M   |        N/A         |      `large`       |    ~10 GB     |       1x       |
-
-The `.en` models for English-only applications tend to perform better, especially for the `tiny.en` and `base.en` models. We observed that the difference becomes less significant for the `small.en` and `medium.en` models.
-
-Whisper's performance varies widely depending on the language. The figure below shows a performance breakdown of `large-v3` and `large-v2` models by language, using WERs (word error rates) or CER (character error rates, shown in *Italic*) evaluated on the Common Voice 15 and Fleurs datasets. Additional WER/CER metrics corresponding to the other models and datasets can be found in Appendix D.1, D.2, and D.4 of [the paper](https://arxiv.org/abs/2212.04356), as well as the BLEU (Bilingual Evaluation Understudy) scores for translation in Appendix D.3.
-
-![WER breakdown by language](https://github.com/openai/whisper/assets/266841/f4619d66-1058-4005-8f67-a9d811b77c62)
-
-
-
-## Command-line usage
-
-The following command will transcribe speech in audio files, using the `medium` model:
-
-    whisper audio.flac audio.mp3 audio.wav --model medium
-
-The default setting (which selects the `small` model) works well for transcribing English. To transcribe an audio file containing non-English speech, you can specify the language using the `--language` option:
-
-    whisper japanese.wav --language Japanese
-
-Adding `--task translate` will translate the speech into English:
-
-    whisper japanese.wav --language Japanese --task translate
-
-Run the following to view all available options:
-
-    whisper --help
-
-See [tokenizer.py](https://github.com/openai/whisper/blob/main/whisper/tokenizer.py) for the list of all available languages.
-
-
-## Python usage
-
-Transcription can also be performed within Python: 
-
-```python
-import whisper
-
-model = whisper.load_model("base")
-result = model.transcribe("audio.mp3")
-print(result["text"])
+|   tiny  |    39 M    |     `tiny.en`      |       `tiny`       |     ~1 GB     |      ~32x      |
+|  基本  |    74 M    |     `base.en`      |       `base`       |     ~1 GB     |      ~16x      |
+| 小 | 244 M | `small.en` | `small` | ~2 GB | ~6x |
+| 中等 |   769 M    |    `medium.en`     |      `medium`      |     ~5 GB     |      ~2x       |
+| 大  |   1550 M   |        N/A         |      `大`       |    ~10 GB     |       1x       |
+ 
+仅使用英语的应用程序的 `.en` 模型往往表现更好，特别是 `tiny.en` 和 `base.en` 模型。我们观察到，对于“small.en”和“medium.en”模型，差异变得不那么明显。
+ 
+Whisper的性能因语言而异。下图显示了“large-v3”和“large-v2”模型在 Common Voice 15 和 Fleurs 数据集上使用 WER（单词错误率）或 CER（字符错误率，以斜体显示）评估的性能细分（按语言）。其他模型和数据集对应的WER/CER指标可以在[论文](https://arxiv.org/abs/2212.04356)的附录D.1、D.2和D.4中找到，以及附录D.3中翻译的BLEU（双语评估研究）分数。
+ 
+按语言分类的WER细分（https://github.com/openai/whisper/assets/266841/f4619d66-1058-4005-8f67-a9d811b77c62）
+ 
+ 
+ 
+## 命令行使用
+ 
+以下命令将使用“medium”模型对音频文件中的语音进行转录：
+ 
+    耳语音频.flac音频.mp3音频.wav--模型中等
+ 
+默认设置（选择“小”模型）适用于转录英语。要转录包含非英语语音的音频文件，可以使用`--language`选项指定语言：
+ 
+    耳语日语.wav --日语
+ 
+添加“--task translate”会将语音翻译成英语：
+ 
+    耳语日语.wav --语言日语--任务翻译
+ 
+运行以下命令以查看所有可用选项：
+ 
+耳语——救命
+ 
+请参阅[tokenizer.py](https://github.com/openai/whisper/blob/main/whisper/tokenizer.py)以获取所有可用语言的列表。
+ 
+ 
+## Python使用
+ 
+转录也可以在Python中执行：
+ 
+python
+导入耳语
+ 
+模型 = whisper.load_model("base")
+结果 = 模型.转录("音频.mp3")
+打印（结果[“文本”]）
 ```
-
-Internally, the `transcribe()` method reads the entire file and processes the audio with a sliding 30-second window, performing autoregressive sequence-to-sequence predictions on each window.
-
-Below is an example usage of `whisper.detect_language()` and `whisper.decode()` which provide lower-level access to the model.
-
-```python
-import whisper
-
-model = whisper.load_model("base")
-
-# load audio and pad/trim it to fit 30 seconds
-audio = whisper.load_audio("audio.mp3")
-audio = whisper.pad_or_trim(audio)
-
-# make log-Mel spectrogram and move to the same device as the model
+ 
+在内部，`transcribe()`方法读取整个文件，并使用一个30秒的滑动窗口处理音频，对每个窗口执行自回归序列到序列预测。
+ 
+以下是“whisper.detect_language()”和“whisper.decode()”的示例用法，它们提供了对模型的低级访问。
+ 
+python
+导入耳语
+ 
+模型 = whisper.load_model("base")
+ 
+#加载音频并填充/修剪它以适应30秒
+音频 = whisper.load_audio("音频.mp3")
+音频 = 耳语.pad_or_trim(音频)
+ 
+# 制作log-Mel频谱图，并将其移动到与模型相同的设备上
 mel = whisper.log_mel_spectrogram(audio).to(model.device)
-
-# detect the spoken language
+ 
+# 检测所讲语言
 _, probs = model.detect_language(mel)
-print(f"Detected language: {max(probs, key=probs.get)}")
-
-# decode the audio
-options = whisper.DecodingOptions()
-result = whisper.decode(model, mel, options)
-
-# print the recognized text
-print(result.text)
+print(f"检测到的语言：{max(probs, key=probs.get)}")
+ 
+# 解码音频
+选项 = 耳语。装饰选项（）
+结果 = whisper.decode(模型, 音高, 选项)
+ 
+# 打印识别的文本
+打印（结果文本）
 ```
-
-## More examples
-
-Please use the [🙌 Show and tell](https://github.com/openai/whisper/discussions/categories/show-and-tell) category in Discussions for sharing more example usages of Whisper and third-party extensions such as web demos, integrations with other tools, ports for different platforms, etc.
-
-
-## License
-
-Whisper's code and model weights are released under the MIT License. See [LICENSE](https://github.com/openai/whisper/blob/main/LICENSE) for further details.
+ 
+## 更多示例
+ 
+请使用讨论中的[🙌 Show and tell](https://github.com/openai/whisper/discussions/categories/show-and-tell)类别来分享更多Whisper和第三方扩展的示例用法，例如Web演示、与其他工具的集成、不同平台的端口等。
+ 
+ 
+##许可证
+ 
+Whisper的代码和模型权重在MIT许可证下发布。有关更多详细信息，请参阅[许可证](https://github.com/openai/whisper/blob/main/LICENSE)。
